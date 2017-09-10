@@ -93,6 +93,7 @@ namespace CoursesApi.Repositories
 			var students = (from sr in _db.Enrollments
 							where sr.CourseId == courseId
 							join s in _db.Students on sr.StudentSSN equals s.SSN
+							where sr.NotRemoved
 							select new StudentDTO
 							{
 								SSN = s.SSN,
@@ -129,8 +130,15 @@ namespace CoursesApi.Repositories
 				throw new FullCourseException();
 			}
 
+			Enrollment enrollment = _db.Enrollments.SingleOrDefault(e => e.StudentSSN == student.SSN && e.CourseId == courseId);
+
+			if (enrollment != null )
+			{
+				throw new AlreadyInCourseException();
+			}
+
 			_db.Enrollments.Add(
-				new Enrollment {CourseId = courseId, StudentSSN = newStudent.SSN}
+				new Enrollment {CourseId = courseId, StudentSSN = newStudent.SSN, NotRemoved = true}
 			);
 			_db.SaveChanges();
 
@@ -176,13 +184,15 @@ namespace CoursesApi.Repositories
 				Name = _db.CourseTemplates.FirstOrDefault(ct => ct.Template == newCourse.CourseID).CourseName,
 				StartDate = entity.StartDate,
 				EndDate = entity.EndDate,
-				Students = _db.Enrollments
-					.Where(e => e.CourseId == entity.Id)
-					.Join(_db.Students, enroll => enroll.StudentSSN, stud => stud.SSN, (e, s) => s)
-					.Select(s => new StudentDTO {
-						SSN = s.SSN,
-						Name = s.Name
-					}).ToList()
+				Students = (from sr in _db.Enrollments
+							where sr.CourseId == entity.Id
+							join s in _db.Students on sr.StudentSSN equals s.SSN
+							where sr.NotRemoved
+							select new StudentDTO
+							{
+								SSN = s.SSN,
+								Name = s.Name
+							}).ToList()
 			};
 		}
 
