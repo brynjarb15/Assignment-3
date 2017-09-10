@@ -20,5 +20,10 @@ namespace CoursesApi.Models.EntityModels
 		/// </summary>
 		/// <returns></returns>
 		public string StudentSSN { get; set; }
+		/// <summary>
+		/// Is true if student has been removed from course
+		/// </summary>
+		/// <returns></returns>
+		public bool NotRemoved { get; set;}
 	}
 }
