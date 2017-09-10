@@ -46,14 +46,17 @@ namespace Api.Controllers
 		[Route("{courseId:int}", Name = "GetCourseById")]
 		public IActionResult GetCourseById(int courseId)
 		{
-			var courses = _coursesService.GetCourseById(courseId);
-			
-			if (courses == null)
+			try
 			{
-				return NotFound();
+				var courses = _coursesService.GetCourseById(courseId);
+				return Ok(courses);
+			}
+			catch(CourseNotFoundException e)
+			{
+				return NotFound(e.Message);
 			}
 
-			return Ok(courses);
+			
 		}
 
 		[HttpPost]
@@ -81,14 +84,17 @@ namespace Api.Controllers
 			if (updatedCourse == null) { return BadRequest(); }
 			if (!ModelState.IsValid) { return StatusCode(412); }
 
-			var course = _coursesService.UpdateCourse(courseId, updatedCourse);
-
-			if (course == null)
+			try 
 			{
-				return NotFound();
+				var course = _coursesService.UpdateCourse(courseId, updatedCourse);
+				return Ok(course);
+			}
+			catch(CourseNotFoundException e)
+			{
+				return NotFound(e.Message);
 			}
 
-			return Ok(course);
+			
 		}
 
 		/// <summary>
@@ -100,14 +106,18 @@ namespace Api.Controllers
 		[Route("{courseId:int}/students")]
 		public IActionResult GetStudentsByCourseId(int courseId)
 		{
-			var students = _coursesService.GetStudentsByCourseId(courseId);
-
-			if (students == null)
+			try
 			{
-				return NotFound();
+				var students = _coursesService.GetStudentsByCourseId(courseId);
+				return Ok(students);
+			}
+			catch(CourseNotFoundException e)
+			{
+				return NotFound(e.Message);
 			}
 
-			return Ok(students);
+
+			
 		}
 
 		/// <summary>
@@ -171,13 +181,14 @@ namespace Api.Controllers
 		[Route("{Id}/waitinglist")]
 		public IActionResult GetWaitinglistForCourse(int Id)
 		{
-			var students = _coursesService.GetWaitinglistForCourse(Id);
-
-			if (students == null)
-			{
-				return NotFound();
+			try {
+				var students = _coursesService.GetWaitinglistForCourse(Id);
+				return Ok(students);
 			}
-			return Ok(students);
+			catch(CourseNotFoundException e)
+			{
+				return NotFound(e.Message);
+			}
 		}
 		
 		///<summary>

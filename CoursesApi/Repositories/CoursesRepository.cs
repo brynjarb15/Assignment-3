@@ -14,6 +14,9 @@ namespace CoursesApi.Repositories
 	{
 		private AppDataContext _db;
 
+	#region PrivateFunctions
+			
+		
 		private Course checkIfCourseExsists(int courseId){
 			Course course = (from c in _db.Courses
 						  where c.Id == courseId
@@ -24,7 +27,6 @@ namespace CoursesApi.Repositories
 			}
 			return course;
 		}
-		
 
 		private Student checkIfStudentExsists(string ssn){
 			var student = (from s in _db.Students
@@ -36,7 +38,7 @@ namespace CoursesApi.Repositories
 			}
 			return student;
 		}
-
+	#endregion
 		public CoursesRepository(AppDataContext db)
 		{
 			_db = db;
@@ -59,12 +61,8 @@ namespace CoursesApi.Repositories
 
 		public CourseDetailsDTO GetCourseById(int courseId)
 		{
-			var course = _db.Courses.SingleOrDefault(c => c.Id == courseId);
-
-			if (course == null)
-			{
-				return null;
-			}
+			//var course = _db.Courses.SingleOrDefault(c => c.Id == courseId);
+			var course = checkIfCourseExsists(courseId);
 
 			var result = new CourseDetailsDTO
 			{
@@ -74,9 +72,10 @@ namespace CoursesApi.Repositories
 				Name = _db.CourseTemplates.Where(t => t.Template == course.CourseTemplate)
 														 .Select(c => c.CourseName).FirstOrDefault(),
 				MaxStudents = course.MaxStudents,
-				Students = (from sr in _db.Enrollments
+				Students = (from sr in _db.Enrollments													// think about putting this into a function
 						   where sr.CourseId == course.Id
 						   join s in _db.Students on sr.StudentSSN equals s.SSN
+						   where sr.NotRemoved
 						   select new StudentDTO
 						   {
 							   SSN = s.SSN,
@@ -89,12 +88,8 @@ namespace CoursesApi.Repositories
 		}
 		public CourseDetailsDTO UpdateCourse(int courseId, CourseViewModel updatedCourse)
 		{
-			var course = _db.Courses.SingleOrDefault(c => c.Id == courseId);
-
-			if (course == null)
-			{
-				return null;
-			}
+			//var course = _db.Courses.SingleOrDefault(c => c.Id == courseId);
+			var course = checkIfCourseExsists(courseId);
 
 			course.StartDate = updatedCourse.StartDate;
 			course.EndDate = updatedCourse.EndDate;
@@ -107,12 +102,8 @@ namespace CoursesApi.Repositories
 
 		public IEnumerable<StudentDTO> GetStudentsByCourseId(int courseId)
 		{
-			var course = _db.Courses.SingleOrDefault(c => c.Id == courseId);
-
-			if (course == null)
-			{
-				return null;
-			}
+			//var course = _db.Courses.SingleOrDefault(c => c.Id == courseId);
+			var course = checkIfCourseExsists(courseId);
 
 			var students = (from sr in _db.Enrollments
 							where sr.CourseId == courseId
@@ -129,26 +120,14 @@ namespace CoursesApi.Repositories
 
 		public StudentDTO AddStudentToCourse(int courseId, StudentViewModel newStudent)
 		{
-			// get the course
-			var course = (from c in _db.Courses
-						  where c.Id == courseId
-						  select c).SingleOrDefault();
-			if (course == null)
-			{
-				throw new CourseNotFoundException();
-			}
+			// get the course and throw error if it is not found
+			var course = checkIfCourseExsists(courseId);
 
-			// get the student
-			var student = (from s in _db.Students
-						   where s.SSN == newStudent.SSN
-						   select s).SingleOrDefault();
-			if (student == null)
-			{
-				throw new StudentNotFoundException();
-			}
+			// get the student and throw error if it is not found
+			var student = checkIfStudentExsists(newStudent.SSN);
 
 			// get the number of students in the course and check if the new student can enter
-			int numberOfStudents = _db.Enrollments.Count(s => s.CourseId == courseId);
+			int numberOfStudents = _db.Enrollments.Count(s => s.CourseId == courseId && s.NotRemoved);
 			if (numberOfStudents >= course.MaxStudents)
 			{
 				throw new FullCourseException();
@@ -156,18 +135,28 @@ namespace CoursesApi.Repositories
 
 			Enrollment enrollment = _db.Enrollments.SingleOrDefault(e => e.StudentSSN == student.SSN && e.CourseId == courseId);
 
-			if (enrollment != null )
+			if (enrollment == null ) // Student is not in course
+			{
+				_db.Enrollments.Add(
+					new Enrollment {CourseId = courseId, StudentSSN = newStudent.SSN, NotRemoved = true}
+				);
+				_db.SaveChanges();
+				
+			}
+			if (enrollment.NotRemoved) // Student is in course
 			{
 				throw new AlreadyInCourseException();
 			}
+			
+			// student has been removed from the course but will now re-enroll
+			enrollment.NotRemoved = true;
+			_db.SaveChanges();
+
 
 			//if the student was on the waiting list for that course he is removed.
 			removeFromWaitingList(student.SSN);
 			
-			_db.Enrollments.Add(
-				new Enrollment {CourseId = courseId, StudentSSN = newStudent.SSN, NotRemoved = true}
-			);
-			_db.SaveChanges();
+			
 
 			return new StudentDTO
 			{
@@ -180,14 +169,8 @@ namespace CoursesApi.Repositories
 
 		public bool DeleteCourseById(int courseId)
 		{
-			var course = (from c in _db.Courses
-							where c.Id == courseId
-							select c).SingleOrDefault();
+			var course = checkIfCourseExsists(courseId);
 
-			if (course == null)
-			{
-				return false;
-			}
 			_db.Courses.Remove(course);
 			_db.SaveChanges();
 
