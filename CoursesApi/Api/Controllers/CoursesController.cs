@@ -175,15 +175,18 @@ namespace Api.Controllers
 			}
 			
 		}
-		///<summary>
-		///returns a list of all students on the waiting list for a course
-		///</summary>
+
+		/// <summary>
+		/// returns a list of all students on the waiting list for a course
+		/// </summary>
+		/// <param name="courseId">id of the course</param>
+		/// <returns>list of students</returns>
 		[HttpGet]
-		[Route("{Id}/waitinglist")]
-		public IActionResult GetWaitinglistForCourse(int Id)
+		[Route("{courseId}/waitinglist")]
+		public IActionResult GetWaitinglistForCourse(int courseId)
 		{
 			try {
-				var students = _coursesService.GetWaitinglistForCourse(Id);
+				var students = _coursesService.GetWaitinglistForCourse(courseId);
 				return Ok(students);
 			}
 			catch(CourseNotFoundException e)
@@ -192,18 +195,22 @@ namespace Api.Controllers
 			}
 		}
 		
-		///<summary>
-		///Adds a student to the waiting list for a course
-		///</summary>
+		 
+		/// <summary>
+		/// Adds a student to the waiting list for a course
+		/// </summary>
+		/// <param name="student">The student to add</param>
+		/// <param name="courseId">id of the course</param>
+		/// <returns></returns>
 		[HttpPost]
-		[Route("{Id}/waitinglist")]
-		public IActionResult AddToWaitinglist([FromBody] StudentViewModel student, int Id)
+		[Route("{courseId}/waitinglist")]
+		public IActionResult AddToWaitinglist([FromBody] StudentViewModel student, int courseId)
 		{
 			if (student == null) { return BadRequest(); }
 			if (!ModelState.IsValid) { return StatusCode(412); }
 			try
 			{
-				var waitingList = _coursesService.AddToWaitinglist(student, Id);
+				var waitingList = _coursesService.AddToWaitinglist(student, courseId);
 				return Ok(waitingList);
 			}
 			catch(StudentNotFoundException e)
@@ -220,10 +227,16 @@ namespace Api.Controllers
 			}
 			catch(AlreadyInCourseException e)
 			{
-				return StatusCode(412, e.Message); // The slides had it like this
+				return StatusCode(412, e.Message); 
 			}
 		}
 
+		/// <summary>
+		/// Removes a student enrollment in a course
+		/// </summary>
+		/// <param name="courseId">id of the course the student is enrolled in</param>
+		/// <param name="ssn">ssn of the student to be removed</param>
+		/// <returns>A status code 204 (if successful)</returns>
 		[HttpDelete]
 		[Route("{courseId:int}/students/{ssn}")]
 		public IActionResult RemoveStudentFromCourse(int courseId, string ssn)
