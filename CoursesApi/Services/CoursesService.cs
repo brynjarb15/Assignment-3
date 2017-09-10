@@ -72,5 +72,10 @@ namespace CoursesApi.Services
 			var stu = _repo.AddToWaitinglist(student, Id);
 			return stu;
 		}
-    }
+
+		public void RemoveStudentFromCourse(int courseId, string ssn)
+		{
+			_repo.RemoveStudentFromCourse(courseId, ssn);
+		}
+	}
 }

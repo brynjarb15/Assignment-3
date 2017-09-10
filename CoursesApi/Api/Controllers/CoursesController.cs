@@ -203,5 +203,28 @@ namespace Api.Controllers
 				return NotFound(e.Message);
 			}
 		}
+
+		[HttpDelete]
+		[Route("{courseId:int}/students/{ssn}")]
+		public IActionResult RemoveStudentFromCourse(int courseId, string ssn)
+		{
+			try
+			{
+				_coursesService.RemoveStudentFromCourse(courseId, ssn);
+				return NoContent();
+			}
+			catch(StudentNotFoundException e)
+			{
+				return NotFound(e.Message);
+			}
+			catch(CourseNotFoundException e)
+			{
+				return NotFound(e.Message);
+			}
+			catch(StudentWasNotInCourseException e)
+			{
+				return StatusCode(412, e.Message);
+			}
+		}
 	}
 }

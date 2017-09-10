@@ -31,4 +31,5 @@ msbuild.wrn
 # Visual Studio 2015
 .vs/
 CoursesApi/Repositories/CoursesApi.db
+Repositories/CoursesApi.db
 

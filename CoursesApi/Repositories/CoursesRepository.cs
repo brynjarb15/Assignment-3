@@ -13,6 +13,29 @@ namespace CoursesApi.Repositories
 	{
 		private AppDataContext _db;
 
+		private Course checkIfCourseExsists(int courseId){
+			Course course = (from c in _db.Courses
+						  where c.Id == courseId
+						  select c).SingleOrDefault();
+			if (course == null)
+			{
+				throw new CourseNotFoundException();
+			}
+			return course;
+		}
+		
+
+		private Student checkIfStudentExsists(string ssn){
+			var student = (from s in _db.Students
+						   where s.SSN == ssn
+						   select s).SingleOrDefault();
+			if (student == null)
+			{
+				throw new StudentNotFoundException();
+			}
+			return student;
+		}
+
 		public CoursesRepository(AppDataContext db)
 		{
 			_db = db;
@@ -239,6 +262,22 @@ namespace CoursesApi.Repositories
 					   where st.SSN == stu.SSN
 					   select st).SingleOrDefault().Name
 			};
+		}
+
+		public void RemoveStudentFromCourse(int courseId, string ssn)
+		{
+			var course = checkIfCourseExsists(courseId);
+			var student = checkIfStudentExsists(ssn);
+			var enrollment = (from sr in _db.Enrollments
+							  where sr.CourseId == courseId &&
+									sr.StudentSSN == ssn
+							  select sr).SingleOrDefault();
+			if (enrollment == null)
+			{
+				throw new StudentWasNotInCourseException();
+			}
+			enrollment.NotRemoved = false;
+			_db.SaveChanges();
 		}
 
 		//rule 3
