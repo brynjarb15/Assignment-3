@@ -179,8 +179,8 @@ namespace Api.Controllers
 		///<summary>
 		///Adds a student to the waiting list for a course
 		///</summary>
-		[HttpPost]
-		[Route("{Id}/waitinglist")]
+		//[HttpPost]
+		//[Route("{Id}/waitinglist")]
 		/*public IActionResult AddToWaitinglist([FromBody] StudentViewModel student, int Id)
 		{
 			Course waitingList = _coursesService.AddToWaitinglist(student, Id);
