@@ -172,6 +172,20 @@ namespace CoursesApi.Repositories
 					}).ToList()
 			};
 		}
+
+		public IEnumerable<StudentDTO> GetWaitinglistForCourse(int courseId)
+		{
+			var students = (from a in _db.Students
+                            join b in _db.WaitingList on a.SSN equals b.StudentSSN
+                            join c in _db.Courses on b.CourseId equals c.Id
+                            where b.CourseId == courseId
+                            select new StudentDTO
+                            {
+                                Name = a.Name,
+                                SSN = a.SSN
+                            }).ToList();
+            return students;
+		}
 	}
 }
 
