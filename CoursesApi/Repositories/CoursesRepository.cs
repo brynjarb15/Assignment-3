@@ -129,6 +129,13 @@ namespace CoursesApi.Repositories
 				throw new FullCourseException();
 			}
 
+			Enrollment enrollment = _db.Enrollments.SingleOrDefault(e => e.StudentSSN == student.SSN && e.CourseId == courseId);
+
+			if (enrollment != null )
+			{
+				throw new AlreadyInCourseException();
+			}
+
 			_db.Enrollments.Add(
 				new Enrollment {CourseId = courseId, StudentSSN = newStudent.SSN}
 			);
