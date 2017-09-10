@@ -148,11 +148,11 @@ namespace Api.Controllers
 			}
 			catch(FullCourseException e)
 			{
-				return StatusCode(409, e.Message);
+				return StatusCode(412, e.Message);
 			}
 			catch(AlreadyInCourseException e)
 			{
-				return StatusCode(412, e.Message); // The slides had it like this
+				return StatusCode(412, e.Message);
 			}
 		}
 
@@ -165,14 +165,15 @@ namespace Api.Controllers
 		[Route("{courseId:int}")]
 		public IActionResult DeleteCourse(int courseId)
 		{
-			var success = _coursesService.DeleteCourseById(courseId);
-
-			if (!success)
-			{
-				return NotFound();
+			try {
+				var success = _coursesService.DeleteCourseById(courseId);
+				return NoContent();
 			}
-
-			return NoContent();
+			catch(CourseNotFoundException e)
+			{
+				return NotFound(e.Message);
+			}
+			
 		}
 		///<summary>
 		///returns a list of all students on the waiting list for a course

@@ -15,8 +15,8 @@ namespace CoursesApi.Repositories
 		private AppDataContext _db;
 
 	#region PrivateFunctions
-			
-		
+
+
 		private Course checkIfCourseExsists(int courseId){
 			Course course = (from c in _db.Courses
 						  where c.Id == courseId
@@ -141,13 +141,13 @@ namespace CoursesApi.Repositories
 					new Enrollment {CourseId = courseId, StudentSSN = newStudent.SSN, NotRemoved = true}
 				);
 				_db.SaveChanges();
-				
+
 			}
 			if (enrollment.NotRemoved) // Student is in course
 			{
 				throw new AlreadyInCourseException();
 			}
-			
+
 			// student has been removed from the course but will now re-enroll
 			enrollment.NotRemoved = true;
 			_db.SaveChanges();
@@ -155,8 +155,8 @@ namespace CoursesApi.Repositories
 
 			//if the student was on the waiting list for that course he is removed.
 			removeFromWaitingList(student.SSN);
-			
-			
+
+
 
 			return new StudentDTO
 			{
@@ -187,37 +187,24 @@ namespace CoursesApi.Repositories
 
 			_db.Courses.Add(entity);
 			_db.SaveChanges();
+			var createdCourse = GetCourseById(entity.Id);
 
-			return new CourseDetailsDTO
-			{
-				Id = entity.Id,
-				Name = _db.CourseTemplates.FirstOrDefault(ct => ct.Template == newCourse.CourseID).CourseName,
-				StartDate = entity.StartDate,
-				EndDate = entity.EndDate,
-				Students = (from sr in _db.Enrollments
-							where sr.CourseId == entity.Id
-							join s in _db.Students on sr.StudentSSN equals s.SSN
-							where sr.NotRemoved
-							select new StudentDTO
-							{
-								SSN = s.SSN,
-								Name = s.Name
-							}).ToList()
-			};
+			return createdCourse;
+			
 		}
 
 		public IEnumerable<StudentDTO> GetWaitinglistForCourse(int courseId)
 		{
 			var students = (from a in _db.Students
-                            join b in _db.WaitingList on a.SSN equals b.StudentSSN
-                            join c in _db.Courses on b.CourseId equals c.Id
-                            where b.CourseId == courseId
-                            select new StudentDTO
-                            {
-                                Name = a.Name,
-                                SSN = a.SSN
-                            }).ToList();
-            return students;
+							join b in _db.WaitingList on a.SSN equals b.StudentSSN
+							join c in _db.Courses on b.CourseId equals c.Id
+							where b.CourseId == courseId
+							select new StudentDTO
+							{
+								Name = a.Name,
+								SSN = a.SSN
+							}).ToList();
+			return students;
 		}
 		public StudentDTO AddToWaitinglist(StudentViewModel student, int Id)
 		{
@@ -225,29 +212,20 @@ namespace CoursesApi.Repositories
 			{
 				throw new AlreadyOnWaitingListException();
 			}
-			// get the course
-			var course = (from c in _db.Courses
-						where c.Id == Id
-						select c).SingleOrDefault();
-			if (course == null)
-			{
-				throw new CourseNotFoundException();
-			}
-			// get the student
-			var stu = (from s in _db.Students
-						where s.SSN == student.SSN
-						select s).SingleOrDefault();
-			if (stu == null)
-			{
-				throw new StudentNotFoundException();
-			}
+			// get the course and throw error if it is not found
+			var course = checkIfCourseExsists(Id);
+
+			// get the student and throw error if it is not found
+			var stu = checkIfStudentExsists(student.SSN);
+
 			//Búa til fall með þessu(líka notað í add to course)
 			Enrollment enrollment = _db.Enrollments.SingleOrDefault(e => e.StudentSSN == student.SSN && e.CourseId == Id);
 
-			if (enrollment != null )
+			if (enrollment != null && enrollment.NotRemoved)
 			{
 				throw new AlreadyInCourseException();
 			}
+
 			var waitingList = new WaitingList{CourseId = Id, StudentSSN = student.SSN};
 			_db.WaitingList.Add(waitingList);
 			_db.SaveChanges();
@@ -260,7 +238,7 @@ namespace CoursesApi.Repositories
 					select st).SingleOrDefault().Name
 			};
 		}
-		
+
 		//help function
 		public WaitingList GetStudentFromWaitingList(string studentSSN)
 		{
@@ -271,7 +249,7 @@ namespace CoursesApi.Repositories
 		}
 
 		//func for rule 3
-		public void removeFromWaitingList(string studentSSN) 
+		public void removeFromWaitingList(string studentSSN)
 		{
 			var student = GetStudentFromWaitingList(studentSSN);
 			if(student != null)
