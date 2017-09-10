@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CoursesApi.Models.DTOModels;
 using CoursesApi.Models.EntityModels;
 using CoursesApi.Models.ViewModels;
+using CoursesApi.Repositories.Exceptions;
 using CoursesApi.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -122,14 +123,23 @@ namespace Api.Controllers
 			if (newStudent == null) { return BadRequest(); }
 			if (!ModelState.IsValid) { return StatusCode(412); }
 
-			var response = _coursesService.AddStudentToCourse(courseId, newStudent);
-
-			if (response == null)
+			try 
 			{
-				return NotFound();
+				var response = _coursesService.AddStudentToCourse(courseId, newStudent);
+				return Ok(response);
 			}
-
-			return Ok(response);
+			catch(StudentNotFoundException e)
+			{
+				return NotFound(e.Message);
+			}
+			catch(CourseNotFoundException e)
+			{
+				return NotFound(e.Message);
+			}
+			catch(FullCourseException e)
+			{
+				return StatusCode(409, e.Message);
+			}
 		}
 
 		/// <summary>

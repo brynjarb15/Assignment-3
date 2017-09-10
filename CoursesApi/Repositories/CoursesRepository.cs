@@ -5,6 +5,7 @@ using CoursesApi.Models.DTOModels;
 using CoursesApi.Models.EntityModels;
 using AutoMapper;
 using CoursesApi.Models.ViewModels;
+using CoursesApi.Repositories.Exceptions;
 
 namespace CoursesApi.Repositories
 {
@@ -103,17 +104,29 @@ namespace CoursesApi.Repositories
 
 		public StudentDTO AddStudentToCourse(int courseId, StudentViewModel newStudent)
 		{
+			// get the course
 			var course = (from c in _db.Courses
 						  where c.Id == courseId
 						  select c).SingleOrDefault();
+			if (course == null)
+			{
+				throw new CourseNotFoundException();
+			}
 
+			// get the student
 			var student = (from s in _db.Students
 						   where s.SSN == newStudent.SSN
 						   select s).SingleOrDefault();
-
-			if (course == null || student == null)
+			if (student == null)
 			{
-				return null;
+				throw new StudentNotFoundException();
+			}
+
+			// get the number of students in the course and check if the new student can enter
+			int numberOfStudents = _db.Enrollments.Count(s => s.CourseId == courseId);
+			if (numberOfStudents >= course.MaxStudents)
+			{
+				throw new FullCourseException();
 			}
 
 			_db.Enrollments.Add(
