@@ -14,5 +14,8 @@ namespace CoursesApi.Services
 		CourseDetailsDTO UpdateCourse(int courseId, CourseViewModel updatedCourse);
 		StudentDTO AddStudentToCourse(int courseId, StudentViewModel newStudent);
 		bool DeleteCourseById(int courseId);
+
+		IEnumerable<StudentDTO> GetWaitinglistForCourse(int courseId); 
+		//StudentDTO AddToWaitinglist(StudentViewModel student, int Id);
 	}
 }

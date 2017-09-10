@@ -12,5 +12,6 @@ namespace CoursesApi.Repositories
 		public DbSet<Student> Students { get; set; }
 		public DbSet<CourseTemplate> CourseTemplates { get; set; }
 		public DbSet<Enrollment> Enrollments { get; set; }
+		public DbSet<WaitingList> WaitingList { get; set; }
 	}
 }	
