@@ -37,5 +37,10 @@ namespace CoursesApi.Models.DTOModels
 		/// </summary>
 		/// <returns></returns>
 		public List<StudentDTO> Students { get; set; }
+		/// <summary>
+		/// The maximum number of students that can be in the course
+		/// </summary>
+		/// <returns></returns>
+		public int MaxStudents { get; set; }
 	}
 }

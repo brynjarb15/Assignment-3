@@ -11,7 +11,7 @@ namespace CoursesApi.Repositories
 	public class CoursesRepository : ICoursesRepository
 	{
 		private AppDataContext _db;
-		
+
 		public CoursesRepository(AppDataContext db)
 		{
 			_db = db;
@@ -20,9 +20,9 @@ namespace CoursesApi.Repositories
 		public IEnumerable<CoursesListItemDTO> GetCourses(string semsester)
 		{
 			var courses = (from c in _db.Courses
-						   join t in _db.CourseTemplates on c.CourseTemplate equals t.Template 
+						   join t in _db.CourseTemplates on c.CourseTemplate equals t.Template
 						   where c.Semester == semsester
-						   select new CoursesListItemDTO 
+						   select new CoursesListItemDTO
 						   {
 							   Id = c.Id,
 							   Name = t.CourseName,
@@ -33,10 +33,10 @@ namespace CoursesApi.Repositories
 		}
 
 		public CourseDetailsDTO GetCourseById(int courseId)
-		{			
+		{
 			var course = _db.Courses.SingleOrDefault(c => c.Id == courseId);
 
-			if (course == null) 
+			if (course == null)
 			{
 				return null;
 			}
@@ -48,6 +48,7 @@ namespace CoursesApi.Repositories
 				EndDate = course.EndDate,
 				Name = _db.CourseTemplates.Where(t => t.Template == course.CourseTemplate)
 														 .Select(c => c.CourseName).FirstOrDefault(),
+				MaxStudents = course.MaxStudents,
 				Students = (from sr in _db.Enrollments
 						   where sr.CourseId == course.Id
 						   join s in _db.Students on sr.StudentSSN equals s.SSN
@@ -65,13 +66,14 @@ namespace CoursesApi.Repositories
 		{
 			var course = _db.Courses.SingleOrDefault(c => c.Id == courseId);
 
-			if (course == null) 
+			if (course == null)
 			{
 				return null;
 			}
 
 			course.StartDate = updatedCourse.StartDate;
 			course.EndDate = updatedCourse.EndDate;
+			course.MaxStudents = updatedCourse.MaxStudents;
 
 			_db.SaveChanges();
 
@@ -82,7 +84,7 @@ namespace CoursesApi.Repositories
 		{
 			var course = _db.Courses.SingleOrDefault(c => c.Id == courseId);
 
-			if (course == null) 
+			if (course == null)
 			{
 				return null;
 			}
@@ -114,7 +116,7 @@ namespace CoursesApi.Repositories
 				return null;
 			}
 
-			_db.Enrollments.Add( 
+			_db.Enrollments.Add(
 				new Enrollment {CourseId = courseId, StudentSSN = newStudent.SSN}
 			);
 			_db.SaveChanges();
@@ -133,7 +135,7 @@ namespace CoursesApi.Repositories
 			var course = (from c in _db.Courses
 							where c.Id == courseId
 							select c).SingleOrDefault();
-			
+
 			if (course == null)
 			{
 				return false;
@@ -146,12 +148,16 @@ namespace CoursesApi.Repositories
 
 		public CourseDetailsDTO AddCourse(CourseViewModel newCourse)
 		{
-			var entity = new Course { CourseTemplate = newCourse.CourseID, Semester = newCourse.Semester, StartDate = newCourse.StartDate, EndDate = newCourse.EndDate };
+			var entity = new Course { CourseTemplate = newCourse.CourseID,
+									  Semester = newCourse.Semester,
+									  StartDate = newCourse.StartDate,
+									  EndDate = newCourse.EndDate,
+									  MaxStudents = newCourse.MaxStudents };
 
 			_db.Courses.Add(entity);
 			_db.SaveChanges();
 
-			return new CourseDetailsDTO 
+			return new CourseDetailsDTO
 			{
 				Id = entity.Id,
 				Name = _db.CourseTemplates.FirstOrDefault(ct => ct.Template == newCourse.CourseID).CourseName,
@@ -167,5 +173,5 @@ namespace CoursesApi.Repositories
 			};
 		}
 	}
-} 
-		   
+}
+

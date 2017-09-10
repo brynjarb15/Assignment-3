@@ -31,9 +31,9 @@ namespace Api
 			services.AddMvc();
 			services.AddTransient<ICoursesRepository, CoursesRepository>();
 			services.AddTransient<ICoursesService, CoursesService>();
-			services.AddDbContext<AppDataContext>(options => 
+			services.AddDbContext<AppDataContext>(options =>
 				options.UseSqlite("Data Source=../Repositories/CoursesApi.db", b => b.MigrationsAssembly("Api")));
-	   
+
 
 		}
 
@@ -44,7 +44,7 @@ namespace Api
 			{
 				app.UseDeveloperExceptionPage();
 			}
-			
+
 			app.UseMvc();
 		}
 	}
