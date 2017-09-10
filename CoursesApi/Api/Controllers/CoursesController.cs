@@ -217,6 +217,10 @@ namespace Api.Controllers
 			{
 				return StatusCode(412, e.Message);
 			}
+			catch(AlreadyInCourseException e)
+			{
+				return StatusCode(412, e.Message); // The slides had it like this
+			}
 		}
 
 		[HttpDelete]
