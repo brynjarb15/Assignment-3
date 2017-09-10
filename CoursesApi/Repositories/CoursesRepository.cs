@@ -292,7 +292,6 @@ namespace CoursesApi.Repositories
 			_db.WaitingList.Remove(student);
 			_db.SaveChanges();
 		}
-<<<<<<< HEAD
 
 		public void RemoveStudentFromCourse(int courseId, string ssn)
 		{
@@ -312,8 +311,6 @@ namespace CoursesApi.Repositories
 
 		//rule 3
 		//public 
-=======
->>>>>>> 228cb9183b7fe777905ffee00b5959a8893be97a
 	}
 }
 
