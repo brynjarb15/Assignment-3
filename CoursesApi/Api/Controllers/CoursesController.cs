@@ -202,6 +202,10 @@ namespace Api.Controllers
 			{
 				return NotFound(e.Message);
 			}
+			catch(AlreadyOnWaitingListException e)
+			{
+				return StatusCode(412, e.Message);
+			}
 		}
 
 		[HttpDelete]

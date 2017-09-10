@@ -7,6 +7,7 @@ using AutoMapper;
 using CoursesApi.Models.ViewModels;
 using CoursesApi.Repositories.Exceptions;
 
+
 namespace CoursesApi.Repositories
 {
 	public class CoursesRepository : ICoursesRepository
@@ -160,6 +161,9 @@ namespace CoursesApi.Repositories
 				throw new AlreadyInCourseException();
 			}
 
+			//if the student was on the waiting list for that course he is removed.
+			removeFromWaitingList(student.SSN);
+			
 			_db.Enrollments.Add(
 				new Enrollment {CourseId = courseId, StudentSSN = newStudent.SSN, NotRemoved = true}
 			);
@@ -234,35 +238,61 @@ namespace CoursesApi.Repositories
 		}
 		public StudentDTO AddToWaitinglist(StudentViewModel student, int Id)
 		{
-			// get the course
-			var course = (from c in _db.Courses
-						  where c.Id == Id
-						  select c).SingleOrDefault();
-			if (course == null)
+			if(GetStudentFromWaitingList(student.SSN) == null)
 			{
-				throw new CourseNotFoundException();
-			}
-			// get the student
-			var stu = (from s in _db.Students
-						   where s.SSN == student.SSN
-						   select s).SingleOrDefault();
-			if (stu == null)
-			{
-				throw new StudentNotFoundException();
-			}
+				// get the course
+				var course = (from c in _db.Courses
+							where c.Id == Id
+							select c).SingleOrDefault();
+				if (course == null)
+				{
+					throw new CourseNotFoundException();
+				}
+				// get the student
+				var stu = (from s in _db.Students
+							where s.SSN == student.SSN
+							select s).SingleOrDefault();
+				if (stu == null)
+				{
+					throw new StudentNotFoundException();
+				}
 
-			var waitingList = new WaitingList{CourseId = Id, StudentSSN = student.SSN};
-			_db.WaitingList.Add(waitingList);
-			_db.SaveChanges();
+				var waitingList = new WaitingList{CourseId = Id, StudentSSN = student.SSN};
+				_db.WaitingList.Add(waitingList);
+				_db.SaveChanges();
 
-			return new StudentDTO
+				return new StudentDTO
+				{
+					SSN = stu.SSN,
+					Name = (from st in _db.Students
+						where st.SSN == stu.SSN
+						select st).SingleOrDefault().Name
+				};
+			}
+			else
 			{
-				SSN = stu.SSN,
-				Name = (from st in _db.Students
-					   where st.SSN == stu.SSN
-					   select st).SingleOrDefault().Name
-			};
+				throw new AlreadyOnWaitingListException();
+			}
 		}
+		//AlreadyOnWaitingListException
+		//help function
+		public WaitingList GetStudentFromWaitingList(string studentSSN)
+		{
+			var student = (from stu in _db.WaitingList
+						where stu.StudentSSN == studentSSN
+						select stu).SingleOrDefault();
+			return student;
+		}
+
+		//func for rule 3
+		public void removeFromWaitingList(string studentSSN) 
+		{
+			var student = GetStudentFromWaitingList(studentSSN);
+
+			_db.WaitingList.Remove(student);
+			_db.SaveChanges();
+		}
+<<<<<<< HEAD
 
 		public void RemoveStudentFromCourse(int courseId, string ssn)
 		{
@@ -282,6 +312,8 @@ namespace CoursesApi.Repositories
 
 		//rule 3
 		//public 
+=======
+>>>>>>> 228cb9183b7fe777905ffee00b5959a8893be97a
 	}
 }
 
