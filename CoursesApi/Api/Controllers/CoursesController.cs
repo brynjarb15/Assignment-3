@@ -183,18 +183,25 @@ namespace Api.Controllers
 		///<summary>
 		///Adds a student to the waiting list for a course
 		///</summary>
-		//[HttpPost]
-		//[Route("{Id}/waitinglist")]
-		/*public IActionResult AddToWaitinglist([FromBody] StudentViewModel student, int Id)
+		[HttpPost]
+		[Route("{Id}/waitinglist")]
+		public IActionResult AddToWaitinglist([FromBody] StudentViewModel student, int Id)
 		{
-			Course waitingList = _coursesService.AddToWaitinglist(student, Id);
-            if(waitingList == null)
-            {
-                return StatusCode(404);
-            }
-            _coursesService.AddStudentToCourse(student, Id);
-            return StatusCode(201);
-		}*/
-		
+			if (student == null) { return BadRequest(); }
+			if (!ModelState.IsValid) { return StatusCode(412); }
+			try
+			{
+				var waitingList = _coursesService.AddToWaitinglist(student, Id);
+				return Ok(waitingList);
+			}
+			catch(StudentNotFoundException e)
+			{
+				return NotFound(e.Message);
+			}
+			catch(CourseNotFoundException e)
+			{
+				return NotFound(e.Message);
+			}
+		}
 	}
 }

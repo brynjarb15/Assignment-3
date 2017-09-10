@@ -67,6 +67,10 @@ namespace CoursesApi.Services
 			return listOfStudents;
 		}
 
-		//public 
+		public StudentDTO AddToWaitinglist(StudentViewModel student, int Id)
+		{
+			var stu = _repo.AddToWaitinglist(student, Id);
+			return stu;
+		}
     }
 }

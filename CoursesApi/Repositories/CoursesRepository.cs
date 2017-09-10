@@ -209,6 +209,40 @@ namespace CoursesApi.Repositories
                             }).ToList();
             return students;
 		}
+		public StudentDTO AddToWaitinglist(StudentViewModel student, int Id)
+		{
+			// get the course
+			var course = (from c in _db.Courses
+						  where c.Id == Id
+						  select c).SingleOrDefault();
+			if (course == null)
+			{
+				throw new CourseNotFoundException();
+			}
+			// get the student
+			var stu = (from s in _db.Students
+						   where s.SSN == student.SSN
+						   select s).SingleOrDefault();
+			if (stu == null)
+			{
+				throw new StudentNotFoundException();
+			}
+
+			var waitingList = new WaitingList{CourseId = Id, StudentSSN = student.SSN};
+			_db.WaitingList.Add(waitingList);
+			_db.SaveChanges();
+
+			return new StudentDTO
+			{
+				SSN = stu.SSN,
+				Name = (from st in _db.Students
+					   where st.SSN == stu.SSN
+					   select st).SingleOrDefault().Name
+			};
+		}
+
+		//rule 3
+		//public 
 	}
 }
 
