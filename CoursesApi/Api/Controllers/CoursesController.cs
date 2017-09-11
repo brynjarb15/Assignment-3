@@ -68,7 +68,7 @@ namespace Api.Controllers
 
 			var newCourse = _coursesService.AddCourse(course);
 
-			return Ok(newCourse);
+			return StatusCode(201, newCourse);
 		}
 
 		/// <summary>
@@ -136,7 +136,7 @@ namespace Api.Controllers
 			try 
 			{
 				var response = _coursesService.AddStudentToCourse(courseId, newStudent);
-				return Ok(response);
+				return StatusCode(201, response);
 			}
 			catch(StudentNotFoundException e)
 			{
