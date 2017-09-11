@@ -143,15 +143,14 @@ namespace CoursesApi.Repositories
 				_db.SaveChanges();
 
 			}
-			if (enrollment.NotRemoved) // Student is in course
+			else if (enrollment.NotRemoved) // Student is in course
 			{
 				throw new AlreadyInCourseException();
+			} else {
+				// student has been removed from the course but will now re-enroll
+				enrollment.NotRemoved = true;
+				_db.SaveChanges();
 			}
-
-			// student has been removed from the course but will now re-enroll
-			enrollment.NotRemoved = true;
-			_db.SaveChanges();
-
 
 			//if the student was on the waiting list for that course he is removed.
 			removeFromWaitingList(student.SSN);
