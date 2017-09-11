@@ -58,7 +58,16 @@ namespace Api.Controllers
 
 			
 		}
-
+		///<summary>
+		///A test case for adding a new course
+		///{ 
+		///"CourseID": "T-514-VEFT",
+		///"Semester": "20163",
+		///"StartDate": "2016-08-18 00:00:00",
+		///"EndDate": "2016-11-10 00:00:00",
+		///"MaxStudents": 4
+		///}
+		///</summary>
 		[HttpPost]
 		[Route("", Name = "AddCourse")]
 		public IActionResult AddCourse([FromBody] CourseViewModel course) 
@@ -165,7 +174,8 @@ namespace Api.Controllers
 		[Route("{courseId:int}")]
 		public IActionResult DeleteCourse(int courseId)
 		{
-			try {
+			try 
+			{
 				var success = _coursesService.DeleteCourseById(courseId);
 				return NoContent();
 			}
@@ -185,7 +195,8 @@ namespace Api.Controllers
 		[Route("{courseId}/waitinglist")]
 		public IActionResult GetWaitinglistForCourse(int courseId)
 		{
-			try {
+			try 
+			{
 				var students = _coursesService.GetWaitinglistForCourse(courseId);
 				return Ok(students);
 			}

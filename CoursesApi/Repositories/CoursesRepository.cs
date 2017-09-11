@@ -14,10 +14,11 @@ namespace CoursesApi.Repositories
 	{
 		private AppDataContext _db;
 
-	#region PrivateFunctions
+		#region PrivateFunctions
 
 
-		private Course checkIfCourseExsists(int courseId){
+		private Course checkIfCourseExsists(int courseId)
+		{
 			Course course = (from c in _db.Courses
 						  where c.Id == courseId
 						  select c).SingleOrDefault();
@@ -28,7 +29,8 @@ namespace CoursesApi.Repositories
 			return course;
 		}
 
-		private Student checkIfStudentExsists(string ssn){
+		private Student checkIfStudentExsists(string ssn)
+		{
 			var student = (from s in _db.Students
 						   where s.SSN == ssn
 						   select s).SingleOrDefault();
@@ -72,7 +74,7 @@ namespace CoursesApi.Repositories
 				Name = _db.CourseTemplates.Where(t => t.Template == course.CourseTemplate)
 														 .Select(c => c.CourseName).FirstOrDefault(),
 				MaxStudents = course.MaxStudents,
-				Students = (from sr in _db.Enrollments													// think about putting this into a function
+				Students = (from sr in _db.Enrollments													
 						   where sr.CourseId == course.Id
 						   join s in _db.Students on sr.StudentSSN equals s.SSN
 						   where sr.NotRemoved
@@ -146,7 +148,9 @@ namespace CoursesApi.Repositories
 			else if (enrollment.NotRemoved) // Student is in course
 			{
 				throw new AlreadyInCourseException();
-			} else {
+			} 
+			else 
+			{
 				// student has been removed from the course but will now re-enroll
 				enrollment.NotRemoved = true;
 				_db.SaveChanges();
@@ -178,11 +182,13 @@ namespace CoursesApi.Repositories
 
 		public CourseDetailsDTO AddCourse(CourseViewModel newCourse)
 		{
-			var entity = new Course { CourseTemplate = newCourse.CourseID,
+			var entity = new Course { 
+									  CourseTemplate = newCourse.CourseID,
 									  Semester = newCourse.Semester,
 									  StartDate = newCourse.StartDate,
 									  EndDate = newCourse.EndDate,
-									  MaxStudents = newCourse.MaxStudents };
+									  MaxStudents = newCourse.MaxStudents 
+									};
 
 			_db.Courses.Add(entity);
 			_db.SaveChanges();
@@ -225,7 +231,7 @@ namespace CoursesApi.Repositories
 				throw new AlreadyInCourseException();
 			}
 
-			var waitingList = new WaitingList{CourseId = Id, StudentSSN = student.SSN};
+			var waitingList = new WaitingList{ CourseId = Id, StudentSSN = student.SSN };
 			_db.WaitingList.Add(waitingList);
 			_db.SaveChanges();
 
