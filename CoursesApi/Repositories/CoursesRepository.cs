@@ -154,7 +154,7 @@ namespace CoursesApi.Repositories
 
 
 			//if the student was on the waiting list for that course he is removed.
-			removeFromWaitingList(student.SSN);
+			removeFromWaitingList(student.SSN, courseId);
 
 
 
@@ -208,7 +208,7 @@ namespace CoursesApi.Repositories
 		}
 		public StudentDTO AddToWaitinglist(StudentViewModel student, int Id)
 		{
-			if(GetStudentFromWaitingList(student.SSN) != null)
+			if(GetStudentFromWaitingList(student.SSN, Id) != null)
 			{
 				throw new AlreadyOnWaitingListException();
 			}
@@ -240,18 +240,18 @@ namespace CoursesApi.Repositories
 		}
 
 		//help function
-		public WaitingList GetStudentFromWaitingList(string studentSSN)
+		public WaitingList GetStudentFromWaitingList(string studentSSN, int courseId)
 		{
 			var student = (from stu in _db.WaitingList
-						where stu.StudentSSN == studentSSN
+						where stu.StudentSSN == studentSSN && stu.CourseId == courseId
 						select stu).SingleOrDefault();
 			return student;
 		}
 
 		//func for rule 3
-		public void removeFromWaitingList(string studentSSN)
+		public void removeFromWaitingList(string studentSSN, int courseId)
 		{
-			var student = GetStudentFromWaitingList(studentSSN);
+			var student = GetStudentFromWaitingList(studentSSN, courseId);
 			if(student != null)
 			{
 				_db.WaitingList.Remove(student);
